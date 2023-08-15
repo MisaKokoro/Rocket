@@ -17,7 +17,7 @@ pid_t getThreadId() {
     if (g_thread_id != 0) {
         return g_thread_id;
     }
-    return syscall(SYS_gettid);
+    return syscall(SYS_gettid); // 用pthread_self()代替？
 }
 
 } // namespace rocket
