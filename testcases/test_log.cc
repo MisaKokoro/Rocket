@@ -10,12 +10,16 @@ void func() {
 }
 int main() {
     
+    rocket::Config::InitGlobalConfig("../conf/rocket.xml");
+    rocket::Logger::InitGlobalLogger();
+
     vector<thread> th;
-    for (int i = 0; i < 10; i++) {
+    int thread_size = 10;
+    for (int i = 0; i < thread_size; i++) {
         th.push_back(thread(func));
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < thread_size; i++) {
         th[i].join();
     }
     DEBUGLOG("test log %s", "main");

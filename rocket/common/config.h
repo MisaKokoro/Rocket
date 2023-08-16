@@ -10,7 +10,7 @@ public:
     Config(const char *xml_path);
 
     static Config* GetGlobalConfig();
-    static void SetGlobalConfig(const char* xmlfile);
+    static void InitGlobalConfig(const char* xmlfile);
 public:
     std::string m_log_level;
 };

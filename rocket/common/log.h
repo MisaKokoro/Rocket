@@ -3,29 +3,44 @@
 
 #include <string>
 #include <queue>
-
+#include "rocket/common/mutex.h"
 
 namespace rocket {
 
 #define DEBUGLOG(str, ...)                                                                                                      \
-    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + rocket::formatString(str, ##__VA_ARGS__);   \
-    msg += "\n";                                                                                                                \
-    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
-    rocket::Logger::GetGlobalLogger()->log();                                                                                   \
+do {                                                                                                                             \
+    if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Debug) {                                                     \                                                                                                                                                          
+        std::string msg = (new rocket::LogEvent(rocket::LogLevel::Debug))->toString() \
+        + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) ;    \
+        msg += "\n";                                                                                                                \
+        rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
+        rocket::Logger::GetGlobalLogger()->log();                                                               \
+    }                                                                                                                               \    
+} while(0);                                                                                                                     \
 
-#define INFOLOG(str, ...)                                                                                                       \
-    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Info))->toString() + rocket::formatString(str, ##__VA_ARGS__);    \
-    msg += "\n";                                                                                                                \
-    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
-    rocket::Logger::GetGlobalLogger()->log();                                                                                   \
+
+#define INFOLOG(str, ...)                                                                                                      \
+do {                                                                                                                             \
+    if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Info) {                                                     \                                                                                                                                                          
+        std::string msg = (new rocket::LogEvent(rocket::LogLevel::Info))->toString() \
+        + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) ;    \
+        msg += "\n";                                                                                                                \
+        rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
+        rocket::Logger::GetGlobalLogger()->log();                                                               \
+    }                                                                                                                               \    
+} while(0);   
+
 
 #define ERRORLOG(str, ...)                                                                                                      \
-    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Error))->toString() + rocket::formatString(str, ##__VA_ARGS__);   \
-    msg += "\n";                                                                                                                \
-    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
-    rocket::Logger::GetGlobalLogger()->log();                                                                                   \
-
-
+do {                                                                                                                             \
+    if (rocket::Logger::GetGlobalLogger()->getLogLevel() <= rocket::Error) {                                                     \                                                                                                                                                          
+        std::string msg = (new rocket::LogEvent(rocket::LogLevel::Error))->toString() \
+        + "[" + std::string(__FILE__) + ":" + std::to_string(__LINE__) + "]\t" + rocket::formatString(str, ##__VA_ARGS__) ;    \
+        msg += "\n";                                                                                                                \
+        rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
+        rocket::Logger::GetGlobalLogger()->log();                                                               \
+    }                                                                                                                               \    
+} while(0);   
 // 将字符串格式化
 // 没有学过的知识点，需要深化一下
 template<typename... Args>
@@ -57,13 +72,17 @@ public:
     Logger(LogLevel level) : m_set_level(level) {}
     void pushLog(const std::string &msg);
     void log();
+    LogLevel getLogLevel();
 
 public:
     static Logger* GetGlobalLogger();
+    static void InitGlobalLogger();
 
 private:
     LogLevel m_set_level; // 当前的日志级别，只允许打印比当前设置的日志级别低的日志
     std::queue<std::string> m_buffer;
+    Mutex m_mutex;
+    
 
 };
 

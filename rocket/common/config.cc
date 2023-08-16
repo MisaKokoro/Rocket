@@ -2,20 +2,21 @@
 #include <string>
 #include "rocket/common/config.h"
 
-#define READ_XML_NODE(name, parent)                                         \
-TiXmlElement* name##_node = parent->FirstChildElement(#name);               \   
-if (!name##_node) {                                                         \
-    printf("Start Rocket server error, failed to read node [%s]", #name);   \
-    exit(0);                                                                \
-}                                                                           \
+#define READ_XML_NODE(name, parent)                                             \
+TiXmlElement* name##_node = parent->FirstChildElement(#name);                   \   
+if (!name##_node) {                                                             \
+    printf("Start Rocket server error, failed to read node [%s]\n", #name);     \
+    exit(0);                                                                    \
+}                                                                               \
 
+// 这里为什么不能用name##，否则就会报错。
 #define READ_STR_FROM_XML_NODE(name, parent)                                        \
 TiXmlElement* name##_node = parent->FirstChildElement(#name);                       \
 if (!name##_node || !name##_node->GetText()) {                                      \
-    printf("Start Rocket server error, failed to read config file %s", #name);      \
+    printf("Start Rocket server error, failed to read config file %s\n", #name);    \
     exit(0);                                                                        \
 }                                                                                   \
-std::string name## = std::string(name##_node->GetText());                           \
+std::string name##_str = std::string(name##_node->GetText());                       \
 
 namespace rocket {
 
@@ -26,7 +27,7 @@ Config::Config(const char *xmlfile) {
 
     bool rt = xml_document->LoadFile(xmlfile);
     if (!rt) {
-        printf("Start Rocket server error, failed to read config file %s", xmlfile);
+        printf("Start Rocket server error, failed to read config file %s, error info[%s]\n", xmlfile,xml_document->ErrorDesc());
         exit(0);
     }
 
@@ -35,14 +36,14 @@ Config::Config(const char *xmlfile) {
 
     READ_STR_FROM_XML_NODE(log_level, log_node);
 
-    m_log_level = log_level;
+    m_log_level = log_level_str;
 }
 
 Config* Config::GetGlobalConfig() {
     return g_config;
 }
 
-void Config::SetGlobalConfig(const char* xmlfile) {
+void Config::InitGlobalConfig(const char* xmlfile) {
     if (g_config == nullptr) {
         g_config = new Config(xmlfile);
     }

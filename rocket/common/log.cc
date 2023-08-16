@@ -10,12 +10,14 @@ namespace rocket {
 
 
 static Logger* g_logger = nullptr; // 全局的日志器
-Logger* Logger::GetGlobalLogger() {
-    if (g_logger) {
-        return g_logger;
+void Logger::InitGlobalLogger() {
+    if (!g_logger) {
+        LogLevel global_log_level = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
+        g_logger = new Logger(global_log_level);
+        printf("Init LogLevel [%s]\n",LogLevelToString(global_log_level).c_str());
     }
-    LogLevel global_log_levle = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
-    g_logger = new Logger(global_log_levle);
+}
+Logger* Logger::GetGlobalLogger() {
     return g_logger;
 }
 
@@ -70,22 +72,32 @@ std::string LogEvent::toString() {
     std::stringstream ss;
     ss << "[" << LogLevelToString(m_level) << "]"
        << "[" << time_str << "]\t"
-       << "[" << m_pid << ":" << m_thread_id << "]\t"
-       << "[" << std::string(__FILE__) << ":" <<  __LINE__ << "]\t";
+       << "[" << m_pid << ":" << m_thread_id << "]\t";
+    //    << "[" << std::string(__FILE__) << ":" <<  __LINE__ << "]\t"; // 行号应该放到宏里面添加，否则的话一直输出的是这一行
 
     return ss.str();
 }
 
 void Logger::pushLog(const std::string &msg) {
+    ScopeMutex<Mutex> lock(m_mutex);
     m_buffer.push(msg);
 }
 
 void Logger::log() {
-    while (!m_buffer.empty()) {
-        std::string msg = m_buffer.front();
-        m_buffer.pop();
+    ScopeMutex<Mutex> lock(m_mutex);
+    std::queue<std::string> tmp;
+    m_buffer.swap(tmp);
+    lock.unlock();
+
+    while (!tmp.empty()) {
+        std::string msg = tmp.front();
+        tmp.pop();
         printf(msg.c_str());
     }
+}
+
+LogLevel Logger::getLogLevel() {
+    return m_set_level;
 }
 
 } // namespace rocket
