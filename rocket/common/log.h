@@ -7,11 +7,23 @@
 
 namespace rocket {
 
-#define DEBUGLOG(str, ...) \
-    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + rocket::formatString(str, ##__VA_ARGS__); \
-    msg += "\n"; \
-    rocket::Logger::GetGlobalLogger()->pushLog(msg); \
-    rocket::Logger::GetGlobalLogger()->log(); \
+#define DEBUGLOG(str, ...)                                                                                                      \
+    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Debug))->toString() + rocket::formatString(str, ##__VA_ARGS__);   \
+    msg += "\n";                                                                                                                \
+    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
+    rocket::Logger::GetGlobalLogger()->log();                                                                                   \
+
+#define INFOLOG(str, ...)                                                                                                       \
+    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Info))->toString() + rocket::formatString(str, ##__VA_ARGS__);    \
+    msg += "\n";                                                                                                                \
+    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
+    rocket::Logger::GetGlobalLogger()->log();                                                                                   \
+
+#define ERRORLOG(str, ...)                                                                                                      \
+    std::string msg = (new rocket::LogEvent(rocket::LogLevel::Error))->toString() + rocket::formatString(str, ##__VA_ARGS__);   \
+    msg += "\n";                                                                                                                \
+    rocket::Logger::GetGlobalLogger()->pushLog(msg);                                                                            \
+    rocket::Logger::GetGlobalLogger()->log();                                                                                   \
 
 
 // 将字符串格式化
@@ -31,15 +43,18 @@ std::string formatString(const char* str, Args&&... args) {
 }
 
 enum LogLevel {
+    Unknown = 0,
     Debug = 1,
     Info = 2,
     Error = 3,
 };
 
 std::string LogLevelToString(LogLevel level);
+LogLevel StringToLogLevel(const std::string &log_level);
 
 class Logger {
 public:
+    Logger(LogLevel level) : m_set_level(level) {}
     void pushLog(const std::string &msg);
     void log();
 

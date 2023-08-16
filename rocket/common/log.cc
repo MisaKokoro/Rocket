@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "rocket/common/log.h"
 #include "rocket/common/util.h"
+#include "rocket/common/config.h"
 
 namespace rocket {
 
@@ -13,8 +14,8 @@ Logger* Logger::GetGlobalLogger() {
     if (g_logger) {
         return g_logger;
     }
-
-    g_logger = new Logger();
+    LogLevel global_log_levle = StringToLogLevel(Config::GetGlobalConfig()->m_log_level);
+    g_logger = new Logger(global_log_levle);
     return g_logger;
 }
 
@@ -30,6 +31,20 @@ std::string LogLevelToString(LogLevel level) {
     default:
         return "UNKNOWN";
     }
+}
+
+LogLevel StringToLogLevel(const std::string &log_level) {
+    if (log_level == "DEBUG") {
+        return Debug;
+    }
+    if (log_level == "INFO") {
+        return Info;
+    }
+    if (log_level == "ERROR") {
+        return Error;
+    }
+
+    return Unknown;
 }
 
 // 将日志转换成这种字符串格式 [Level][%y-%m-%d %H:%M:%s.%ms]\t[pid:thread_id]\t[file_name:line][%msg]
