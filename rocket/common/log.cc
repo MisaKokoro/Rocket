@@ -84,6 +84,7 @@ void Logger::pushLog(const std::string &msg) {
 }
 
 void Logger::log() {
+    // 在这段代码中，tmp 变量是用来保存日志缓冲区的副本的临时队列。它的目的是确保在打印日志消息时，不会持有互斥锁。
     ScopeMutex<Mutex> lock(m_mutex);
     std::queue<std::string> tmp;
     m_buffer.swap(tmp);
@@ -92,7 +93,7 @@ void Logger::log() {
     while (!tmp.empty()) {
         std::string msg = tmp.front();
         tmp.pop();
-        printf(msg.c_str());
+        printf("%s",msg.c_str());
     }
 }
 

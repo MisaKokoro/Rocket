@@ -63,6 +63,11 @@
             "cwd": "/home/yanxiang/Desktop/MyProject/rocket/bin",
             "binaryPath": "/home/yanxiang/Desktop/MyProject/rocket/bin/test_log",
             "binaryArgs": []
+        },
+        {
+            "cwd": "/home/yanxiang/Desktop/MyProject/rocket/bin",
+            "binaryPath": "/home/yanxiang/Desktop/MyProject/rocket/bin/test_eventloop",
+            "binaryArgs": []
         }
     ]
 }
