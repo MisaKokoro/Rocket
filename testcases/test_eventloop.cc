@@ -53,6 +53,14 @@ int main() {
 
   });
   eventloop->addEpollEvent(&event);
+
+  int i = 0;
+  rocket::TimerEvent::s_ptr timer_event = std::make_shared<rocket::TimerEvent>(
+    2000,true,[&i](){
+      INFOLOG("trigger timer event i = %d", i++);
+    }
+  );
+  eventloop->addTimerEvent(timer_event);
   eventloop->loop();
 
 

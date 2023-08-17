@@ -56,7 +56,8 @@
         "ratio": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "queue": "cpp"
     },
     "makefile.launchConfigurations": [
         {

@@ -8,6 +8,7 @@
 #include "rocket/common/mutex.h"
 #include "rocket/net/fd_event.h"
 #include "rocket/net/wakeup_fd_event.h"
+#include "rocket/net/timer.h"
 
 
 namespace rocket {
@@ -32,10 +33,14 @@ public:
 
     void addTask(std::function<void()> cb, bool is_wake_up = false); 
 
+    void addTimerEvent(TimerEvent::s_ptr event);
+
 private:
     void dealWekeup();
 
     void initWakeupFdEvent();
+
+    void initTimer();
 
 private:
     pid_t m_thread_id {0};
@@ -51,6 +56,8 @@ private:
     std::queue<std::function<void()>> m_pending_tasks;
 
     WakeUpFdEvent *m_wamkeup_fd_event {nullptr};
+
+    Timer *m_timer {nullptr};
 
     Mutex m_mutex;
 

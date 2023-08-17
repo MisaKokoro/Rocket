@@ -15,10 +15,11 @@ public:
     };
 
     FdEvent(int fd);
+    FdEvent();
     ~FdEvent();
 
     std::function<void()> handler(TriggerEvent event);
-    void listen(TriggerEvent event, std::function<void()> callback);
+    void listen(TriggerEvent event, std::function<void()> callback); // 这里的listen类似register函数，注册一个度或者写事件
 
     int getFd() const {
         return m_fd;

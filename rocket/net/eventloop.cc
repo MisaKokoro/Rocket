@@ -16,6 +16,7 @@ int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp);\
 if (rt == -1) {\
     ERRORLOG("failed epoll_ctl when add fd %d, errno = %d, error:%s", event->getFd(),errno, strerror(errno));\
 }\
+m_listen_fds.insert(event->getFd()); \
 DEBUGLOG("add event success, fd[%d]", event->getFd()); \
 
 #define DELETE_TO_EPOLL() \
@@ -29,6 +30,7 @@ int rt = epoll_ctl(m_epoll_fd, op, event->getFd(), &tmp);\
 if (rt == -1) {\
     ERRORLOG("failed epoll_ctl when delete fd %d, errno = %d, error:%s", event->getFd(),errno, strerror(errno));\
 }\
+m_listen_fds.erase(event->getFd()); \
 DEBUGLOG("delete event success, fd[%d]", event->getFd()); \
 
 
@@ -53,6 +55,7 @@ EventLoop::EventLoop() {
     }
     
     initWakeupFdEvent();
+    initTimer();
     // 成功创建eventloop，并给当前线程的t_current_eventloop赋值
     INFOLOG("succ create event loop int thread %d", m_thread_id);
     t_current_eventloop = this;
@@ -64,6 +67,11 @@ EventLoop::~EventLoop() {
     if (m_wamkeup_fd_event) {
         delete m_wamkeup_fd_event;
         m_wamkeup_fd_event = nullptr;
+    }
+
+    if (m_timer) {
+        delete m_timer;
+        m_timer = nullptr;
     }
 }
 
@@ -86,9 +94,9 @@ void EventLoop::loop() {
 
         int timeout = g_epoll_max_timeout;
         epoll_event result_events[g_epoll_max_events];
-        DEBUGLOG("now begin epoll wait");
+        // DEBUGLOG("now begin epoll wait");
         int rt = epoll_wait(m_epoll_fd, &result_events[0], g_epoll_max_events, timeout);
-        DEBUGLOG("epoll wait end, rt = %d", rt);
+        // DEBUGLOG("epoll wait end, rt = %d", rt);
         if (rt < 0) {
             ERRORLOG("epoll_wait error, errno = %d\n",errno);
         } else {
@@ -98,6 +106,7 @@ void EventLoop::loop() {
                 if (fd_event == nullptr) {
                     continue;
                 }
+                DEBUGLOG("fd_event fd = %d, events = %d", fd_event->getFd(), fd_event->getEpollEvent().events);
                 if (trigger_event.events & EPOLLIN) {
                     DEBUGLOG("fd[%d] trigger EPOLLIN event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::IN_EVENT));
@@ -152,6 +161,10 @@ void EventLoop::addTask(std::function<void()> cb, bool is_wake_up /*=false*/) {
     }
 }
 
+void EventLoop::addTimerEvent(TimerEvent::s_ptr event) {
+    m_timer->addTimerEvent(event);
+}
+
 
 bool EventLoop::isInLoopThread() {
     return m_thread_id == getThreadId();
@@ -179,6 +192,12 @@ void EventLoop::initWakeupFdEvent() {
     };
     m_wamkeup_fd_event->listen(FdEvent::IN_EVENT,read_callback);
     addEpollEvent(m_wamkeup_fd_event);
+}
+
+void EventLoop::initTimer() {
+    m_timer = new Timer();
+    addEpollEvent(m_timer);
+    INFOLOG("timer init succsee");
 }
 
 } // namespace rocket
