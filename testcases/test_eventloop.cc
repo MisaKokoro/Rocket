@@ -10,6 +10,7 @@
 #include "rocket/net/fd_event.h"
 #include "rocket/net/eventloop.h"
 #include "rocket/net/io_thread.h"
+#include "rocket/net/io_thread_group.h"
 
 void test_io_thread() {
   int listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -55,14 +56,28 @@ void test_io_thread() {
     }
   );
 
-  rocket::IOThread io_thread;
+  // rocket::IOThread io_thread;
   // TODO 同样是添加event为什么一个用智能指针一个用普通指针，是否应该统一？
-  io_thread.getEventLoop()->addEpollEvent(&event);
-  io_thread.getEventLoop()->addTimerEvent(timer_event);
+  // io_thread.getEventLoop()->addEpollEvent(&event);
+  // io_thread.getEventLoop()->addTimerEvent(timer_event);
 
-  io_thread.start();
+  // io_thread.start();
 
-  io_thread.join();
+  // io_thread.join();
+
+  rocket::IOThreadGroup io_thread_groups = rocket::IOThreadGroup(2);
+  rocket::IOThread *io_thread = io_thread_groups.getIOThread();
+  rocket::IOThread* io_thread2 = io_thread_groups.getIOThread();
+
+  io_thread->getEventLoop()->addEpollEvent(&event);
+  io_thread->getEventLoop()->addTimerEvent(timer_event);
+
+  io_thread2->getEventLoop()->addTimerEvent(timer_event);
+
+  io_thread_groups.start();
+
+  io_thread_groups.join();
+
 
 }
 int main() {

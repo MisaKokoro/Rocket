@@ -43,18 +43,19 @@ void* IOThread::Main(void *arg) {
 
     sem_post(&thread->m_init_semaphore);
 
-    // 通过start函数控制IOThread的启动，可以在loop之前完成添加event的动作
     DEBUGLOG("IOThread %d created, wait start semaphore", thread->m_thread_id);
     sem_wait(&thread->m_start_semaphore);
     DEBUGLOG("IOThread %d will start loop", thread->m_thread_id);
     thread->m_event_loop->loop();
 }
 
+// 通过start函数控制IOThread的启动，可以在loop之前完成添加event的动作
 void IOThread::start() {
     DEBUGLOG("Now invoke thead id[%d] eventloop", m_thread_id);
     sem_post(&m_start_semaphore);
 }
 
+// 等待线程退出，防止服务终止
 void IOThread::join() {
     pthread_join(m_thread, nullptr);
 }
