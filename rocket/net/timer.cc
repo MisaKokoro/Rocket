@@ -7,6 +7,8 @@
 
 namespace rocket {
 Timer::Timer() : FdEvent() {
+    // TODO timerfd相关内容，TFD_CLOEXEC这些都是什么含义？
+    // 如果文件描述符的 CLOEXEC 标志被设置为 1，那么在执行 exec 函数时，该文件描述符将会被关闭，不会被继承到新的进程中。
     m_fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
     if (m_fd == -1) {
         ERRORLOG("create timer failed, timerfd create failed, erron = %d, error: %s", errno, strerror(errno));
@@ -16,6 +18,7 @@ Timer::Timer() : FdEvent() {
 
     DEBUGLOG("timer fd = %d", m_fd);
 
+    // TODO 使用bind包装函数，或者使用function包装函数与函数指针的区别是什么？
     listen(FdEvent::IN_EVENT,std::bind(&Timer::onTimer, this));
 }
 

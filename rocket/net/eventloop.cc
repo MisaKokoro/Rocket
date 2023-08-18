@@ -122,6 +122,7 @@ void EventLoop::loop() {
 }
 
 void EventLoop::stop() {
+    DEBUGLOG("thread_id : %d stop eventloop", m_thread_id);
     m_stop_flag = true;
 }
 
@@ -171,6 +172,7 @@ bool EventLoop::isInLoopThread() {
 }
 
 void EventLoop::wakeup() {
+    DEBUGLOG("WAKE UP");
     m_wamkeup_fd_event->wakeup();
 }
 
