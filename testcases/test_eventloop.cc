@@ -11,6 +11,7 @@
 #include "rocket/net/eventloop.h"
 #include "rocket/net/io_thread.h"
 #include "rocket/net/io_thread_group.h"
+#include "rocket/net/tcp/tcp_server.h"
 
 void test_io_thread() {
   int listenfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -86,7 +87,7 @@ int main() {
 
   rocket::Logger::InitGlobalLogger();
 
-  rocket::EventLoop* eventloop = new rocket::EventLoop();
+  // rocket::EventLoop* eventloop = new rocket::EventLoop();
 
   test_io_thread();
 

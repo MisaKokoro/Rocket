@@ -69,7 +69,8 @@
         "socket": "cpp",
         "timer": "cpp",
         "future": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "unordered_set": "cpp"
     },
     "makefile.launchConfigurations": [
         {

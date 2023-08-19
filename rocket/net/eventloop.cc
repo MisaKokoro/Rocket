@@ -36,6 +36,7 @@ DEBUGLOG("delete event success, fd[%d]", event->getFd()); \
 
 namespace rocket {
 
+// 每个线程的eventloop，一个线程只能有一个eventloop
 static thread_local EventLoop* t_current_eventloop = nullptr;
 static int g_epoll_max_timeout = 10000;
 static int g_epoll_max_events = 10;
@@ -202,4 +203,12 @@ void EventLoop::initTimer() {
     INFOLOG("timer init succsee");
 }
 
+EventLoop* EventLoop::GetCurrentEventLoop() {
+    if (t_current_eventloop) {
+        return t_current_eventloop;
+    }
+
+    t_current_eventloop = new EventLoop();
+    return t_current_eventloop;
+}
 } // namespace rocket

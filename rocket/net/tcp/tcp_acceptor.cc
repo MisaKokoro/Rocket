@@ -63,4 +63,8 @@ int TcpAcceptor::accept() {
         return 0;
     }
 }
+
+int TcpAcceptor::getListenFd() {
+    return m_listenfd;
+}
 }
