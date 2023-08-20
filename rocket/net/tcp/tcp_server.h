@@ -1,7 +1,9 @@
 #ifndef ROCKET_NET_TCP_TCP_SERVER_H
 #define ROCKET_NET_TCP_TCP_SERVER_H
+#include <set>
 #include "rocket/net/io_thread_group.h"
 #include "rocket/net/tcp/tcp_acceptor.h"
+#include "rocket/net/tcp/tcp_connection.h"
 
 namespace rocket {
 // TcpSever 是一个全局的单例对象，只能在主线程里面构建
@@ -30,6 +32,7 @@ private:
 
     int m_client_counts {0};
 
+    std::set<TcpConnection::s_ptr> m_client;
 };
 }
 #endif 

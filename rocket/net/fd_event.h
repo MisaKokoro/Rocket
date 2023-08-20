@@ -21,6 +21,8 @@ public:
     std::function<void()> handler(TriggerEvent event);
     void listen(TriggerEvent event, std::function<void()> callback); // 这里的listen类似register函数，注册一个度或者写事件
 
+    void cancel(TriggerEvent event_type);
+    
     int getFd() const {
         return m_fd;
     }
@@ -28,6 +30,8 @@ public:
     epoll_event getEpollEvent() {
         return m_listen_events;
     }
+
+    void setNonBlock();
 
 protected:
     int m_fd{-1};

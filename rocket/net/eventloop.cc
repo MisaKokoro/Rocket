@@ -22,7 +22,7 @@ DEBUGLOG("add event success, fd[%d]", event->getFd()); \
 #define DELETE_TO_EPOLL() \
 auto it = m_listen_fds.find(event->getFd()); \
 int op = EPOLL_CTL_DEL;\
-if (it != m_listen_fds.end()) {\
+if (it == m_listen_fds.end()) {\
     return;\
 }\
 epoll_event tmp = event->getEpollEvent();\
@@ -143,8 +143,9 @@ void EventLoop::addEpollEvent(FdEvent *event) {
 }
 
 void EventLoop::deleteEpollEvent(FdEvent *event) {
+    DEBUGLOG("In delete eventloop");
     if (isInLoopThread()) {
-       DELETE_TO_EPOLL()
+       DELETE_TO_EPOLL();
     } else {
         auto cb = [this,event]() {
             DELETE_TO_EPOLL();

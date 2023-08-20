@@ -1,5 +1,6 @@
 #include "rocket/net/tcp/tcp_server.h"
 #include "rocket/common/log.h"
+#include "rocket/net/tcp/tcp_connection.h"
 
 namespace rocket {
 TcpServer::TcpServer(NetAddr::s_ptr local_addr) : m_local_addr(local_addr) {
@@ -31,11 +32,18 @@ void TcpServer::init() {
 }
 
 void TcpServer::onAccept() {
-    int client_id = m_acceptor->accept();
+    auto re = m_acceptor->accept();
+    int client_fd = re.first;
+    NetAddr::s_ptr peer_addr = re.second;
+
     m_client_counts++;
 
-    // TODO 把client_id添加到任意io线程里面
-    INFOLOG("TcpServer success get client fd = %d", client_id);
+    // 把client_id添加到任意io线程里面
+    IOThread* io_thread = m_io_thread_group->getIOThread();
+    TcpConnection::s_ptr connection = std::make_shared<TcpConnection>(io_thread, client_fd, 128, peer_addr);
+    connection->setState(Connected);
+    m_client.insert(connection);
+    INFOLOG("TcpServer success get client fd = %d, peer addr = %s", client_fd, peer_addr->toString().c_str());
 }
 
 }

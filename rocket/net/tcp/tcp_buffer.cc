@@ -27,7 +27,7 @@ void TcpBuffer::wirteToBuffer(const char* buf, int size) {
     }
 
     memcpy(&m_buffer[m_write_index], buf, size);
-    moveWriteIndex(size);
+    m_write_index += size;
 }
 
 void TcpBuffer::readFromBuffer(std::vector<char> &re, int size) {
@@ -40,7 +40,7 @@ void TcpBuffer::readFromBuffer(std::vector<char> &re, int size) {
     memcpy(&tmp[0], &m_buffer[m_read_index], read_size);
     re.swap(tmp);
 
-    moveReadIndex(size);
+    m_read_index += size;
 }
 
 int TcpBuffer::readIndex() {
