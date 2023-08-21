@@ -77,6 +77,7 @@ EventLoop::~EventLoop() {
 }
 
 void EventLoop::loop() {
+    m_is_looping = true;
     while (!m_stop_flag) {
         // 和日志那里的思想一样，将任务全部取出来再挨个执行,提高并发量
         ScopeMutex<Mutex> lock(m_mutex);
@@ -211,5 +212,9 @@ EventLoop* EventLoop::GetCurrentEventLoop() {
 
     t_current_eventloop = new EventLoop();
     return t_current_eventloop;
+}
+
+bool EventLoop::isLooping() {
+    return m_is_looping;
 }
 } // namespace rocket

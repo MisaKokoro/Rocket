@@ -15,11 +15,16 @@ enum TcpState {
     HalfClosing = 3,
     Closed = 4,
 };
+
+enum TcpConnectionType {
+    TcpConnectionByServer = 1, // 作为服务端使用， 代表对端客户端连接
+    TcpConnectionByClient = 2, // 作为客户端使用， 代表对端服务器连接
+};
 class TcpConnection {
 public:
     using s_ptr = std::shared_ptr<TcpConnection>;
 public:
-    TcpConnection(IOThread* io_thread, int fd, int buffer_size, NetAddr::s_ptr peer_addr);
+    TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr peer_addr);
 
     ~TcpConnection();
 
@@ -35,6 +40,8 @@ public:
 
     void shutdown();
 
+    void setConnectionType(TcpConnectionType type);
+
     TcpState getState();
 
 private:
@@ -44,13 +51,15 @@ private:
     TcpBuffer::s_ptr m_in_buffer; // 负责写入对端发送过来的内容
     TcpBuffer::s_ptr m_out_buffer; // 负责存将要发送给对端的内容
 
-    IOThread* m_io_thread {nullptr};
+    EventLoop* m_event_loop {nullptr};
 
     FdEvent* m_fd_event {nullptr};
 
     TcpState m_state;
 
     int m_fd {-1};
+
+    TcpConnectionType m_connection_type {TcpConnectionByServer};
 
 };
 

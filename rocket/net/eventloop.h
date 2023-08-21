@@ -34,6 +34,8 @@ public:
     void addTask(std::function<void()> cb, bool is_wake_up = false); 
 
     void addTimerEvent(TimerEvent::s_ptr event);
+
+    bool isLooping();
 public:
     static EventLoop* GetCurrentEventLoop();
 
@@ -52,6 +54,8 @@ private:
     int m_wakeup_fd {0}; // 一个eventfd， 用于唤醒epoll_wait
 
     bool m_stop_flag {false};
+
+    bool m_is_looping {false};
 
     std::set<int> m_listen_fds;
 
