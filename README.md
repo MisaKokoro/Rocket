@@ -21,3 +21,7 @@
 ### 2023.8.21 15:35
 实现了TcpClient的一些基本函数
 完善了TcpConnection的一些函数
+
+### 2023.8.22 15:20
+实现tcpclient的收发信息函数
+加了一个临时的stringcoder进行发送信息测试

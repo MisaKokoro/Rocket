@@ -139,7 +139,7 @@ void EventLoop::addEpollEvent(FdEvent *event) {
         auto cb = [this,event]() {
             ADD_TO_EPOLL();
         };
-        addTask(cb);
+        addTask(cb, true);
     }
 }
 
@@ -151,7 +151,7 @@ void EventLoop::deleteEpollEvent(FdEvent *event) {
         auto cb = [this,event]() {
             DELETE_TO_EPOLL();
         };
-        addTask(cb);
+        addTask(cb, true);
     }
 }
 

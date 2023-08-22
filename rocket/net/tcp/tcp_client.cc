@@ -17,7 +17,7 @@ TcpClient::TcpClient(NetAddr::s_ptr peer_addr) : m_peer_addr(peer_addr) {
     m_fd_event->setNonBlock();
 
 
-    m_connection = std::make_shared<TcpConnection>(m_event_loop, m_fd, 128, m_peer_addr);
+    m_connection = std::make_shared<TcpConnection>(m_event_loop, m_fd, 128, m_peer_addr, TcpConnectionByClient);
     m_connection->setConnectionType(TcpConnectionByClient);
 }
 
@@ -44,18 +44,25 @@ void TcpClient::connect(std::function<void()> done) {
                 int error = 0;
                 socklen_t error_len = sizeof(error);
                 getsockopt(m_fd, SOL_SOCKET, SO_ERROR, &error, &error_len);
+
+                bool is_connect_success = false;
                 if (error == 0) {
                     DEBUGLOG("connect success, peer_addr[%s]", m_peer_addr->toString().c_str());
-                    if (done) {
-                        done();
-                    }
+                    is_connect_success = true;
+                    m_connection->setState(Connected);
                 } else {
                     ERRORLOG("connect error , errno = %d, error:%s", errno, strerror(errno));
                 }
 
                 // TODO 需要去掉可写事件， 不然会一直触发?
+                // 这里去掉的是连接成功后的写回调
                 m_fd_event->cancel(FdEvent::OUT_EVENT);
                 m_event_loop->addEpollEvent(m_fd_event);
+
+                // 这里done调到下面来执行，不然上面的取消写回调会导致done无法把message写完后执行回调函数
+                if (is_connect_success && done) {
+                    done();
+                }
             });
             // 将事件添加，并且开启loop
             m_event_loop->addEpollEvent(m_fd_event);
@@ -71,13 +78,20 @@ void TcpClient::connect(std::function<void()> done) {
 // 异步的发送message
 // 发送message成功则会执行回调函数
 void TcpClient::writeMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)> done) {
-
+    
+    // 1. 把message以及其对应的回调写入
+    // 2. connection监听可写事件
+    m_connection->pushSendMessage(message, done);
+    m_connection->listenWrite();
 }
 
 // 异步的读取message
 // 读取=message成功则会执行回调函数
-void TcpClient::readMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)> done) {
-
+void TcpClient::readMessage(const std::string& message, std::function<void(AbstractProtocol::s_ptr)> done) {
+    // 监听可读事件
+    // 从buffer里decode得到的message对象， 判断是否与req_id相等，若相等执行相应的回调
+    m_connection->pushReadMessage(message, done);
+    m_connection->listenRead();
 }
 
 }

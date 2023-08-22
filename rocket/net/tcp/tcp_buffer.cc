@@ -19,7 +19,7 @@ int TcpBuffer::writeAble() {
     return m_size - m_write_index;
 }
 
-void TcpBuffer::wirteToBuffer(const char* buf, int size) {
+void TcpBuffer::writeToBuffer(const char* buf, int size) {
     // buffer不够写了，需要整理扩容
     if (size > writeAble()) {
         int new_size = (size + m_write_index) * 3 / 2;

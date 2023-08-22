@@ -25,7 +25,7 @@ public:
 
     // 异步的读取message
     // 读取=message成功则会执行回调函数
-    void readMessage(AbstractProtocol::s_ptr message, std::function<void(AbstractProtocol::s_ptr)> done);
+    void readMessage(const std::string&, std::function<void(AbstractProtocol::s_ptr)> done);
 
 private:
     NetAddr::s_ptr m_peer_addr;

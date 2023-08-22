@@ -1,6 +1,7 @@
 #include "rocket/net/tcp/tcp_server.h"
 #include "rocket/common/log.h"
 #include "rocket/net/tcp/tcp_connection.h"
+#include "rocket/net/fd_event_group.h"
 
 namespace rocket {
 TcpServer::TcpServer(NetAddr::s_ptr local_addr) : m_local_addr(local_addr) {
@@ -26,7 +27,7 @@ void TcpServer::init() {
     m_io_thread_group = new IOThreadGroup(2);
     INFOLOG("tcp server success listen on [%s]", m_local_addr->toString().c_str());
 
-    m_listen_fd_event = new FdEvent(m_acceptor->getListenFd());
+    m_listen_fd_event = FdEventGroup::GetFdEventGroup()->getFdevent(m_acceptor->getListenFd());
     m_listen_fd_event->listen(FdEvent::IN_EVENT, std::bind(&TcpServer::onAccept, this));
     m_main_event_loop->addEpollEvent(m_listen_fd_event);
 }

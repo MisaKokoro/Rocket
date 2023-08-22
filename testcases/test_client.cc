@@ -8,6 +8,7 @@
 #include "rocket/net/fd_event_group.h"
 #include "rocket/net/tcp/tcp_connection.h"
 #include "rocket/net/tcp/tcp_client.h"
+#include "rocket/net/string_coder.h"
 
 void test_connect() {
   // 调用 conenct 连接 server
@@ -47,8 +48,19 @@ void test_tcp_client() {
   rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1",12345);
   rocket::TcpClient client(addr);
 
-  client.connect([addr]() {
+  client.connect([addr,&client]() {
     DEBUGLOG("success connect [%s]", addr->toString().c_str());
+    auto message = std::make_shared<rocket::StringProtocol>();
+    message->info = "hello rocket";
+    message->setReqId("123456"); 
+    client.writeMessage(message, [](rocket::AbstractProtocol::s_ptr msg_ptr){
+      DEBUGLOG("send message success");
+    });
+
+    client.readMessage("123456", [](rocket::AbstractProtocol::s_ptr msg_ptr) {
+      std::shared_ptr<rocket::StringProtocol> message = std::dynamic_pointer_cast<rocket::StringProtocol>(msg_ptr);
+      DEBUGLOG("req_id[%s], get response %s", message->getReqId().c_str(), message->info.c_str());
+    });
   });
 }
 
