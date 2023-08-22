@@ -2,8 +2,8 @@
 #define ROCKERT_NET_STRING_CODER_H
 
 #include <string>
-#include "rocket/net/abstract_coder.h"
-#include "rocket/net/abstract_protocol.h"
+#include "rocket/net/coder/abstract_coder.h"
+#include "rocket/net/coder/abstract_protocol.h"
 
 namespace rocket {
 

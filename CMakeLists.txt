@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(MyProject)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -Wno-deprecated -Wno-unused-but-set-variable")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -Wno-deprecated -Wno-unused-but-set-variable -Wno-format-security")
 
 # 设置源文件的路径
 set(PATH_ROCKET rocket)
@@ -10,6 +10,7 @@ set(PATH_COMM ${PATH_ROCKET}/common)
 set(PATH_NET ${PATH_ROCKET}/net)
 set(PATH_TESTCASES testcases)
 set(PATH_TCP ${PATH_NET}/tcp)
+set(PAHT_CODER ${PATH_NET}/coder)
 
 # 设置输出文件的路径
 set(PATH_BIN ${CMAKE_BINARY_DIR}/bin)
@@ -29,6 +30,7 @@ include_directories(
     ${PATH_COMM}
     ${PATH_NET}
     ${PATH_TCP}
+    ${PAHT_CODER}
 )
 
 # 添加链接库搜索路径
@@ -38,6 +40,7 @@ link_directories(/usr/local/lib /usr/lib)
 file(GLOB COMM_SRC ${PATH_COMM}/*.cc)
 file(GLOB NET_SRC ${PATH_NET}/*.cc)
 file(GLOB TCP_SRC ${PATH_TCP}/*.cc)
+file(GLOB CODER_SRC ${PAHT_CODER}/*.cc)
 file(GLOB TEST_LOG_SRC ${PATH_TESTCASES}/test_log.cc)
 file(GLOB TEST_EVENTLOOP_SRC ${PATH_TESTCASES}/test_eventloop.cc)
 file(GLOB TEST_TCP_SRC ${PATH_TESTCASES}/test_tcp.cc)
@@ -62,7 +65,7 @@ target_link_libraries(test_client rocket protobuf tinyxml dl pthread)
 
 
 # 生成库文件
-add_library(rocket STATIC ${COMM_SRC} ${NET_SRC} ${TCP_SRC})
+add_library(rocket STATIC ${COMM_SRC} ${NET_SRC} ${TCP_SRC} ${CODER_SRC})
 
 # 设置库文件的输出路径
 set_target_properties(rocket PROPERTIES

@@ -3,7 +3,7 @@
 #include "rocket/net/tcp/tcp_connection.h"
 #include "rocket/net/fd_event_group.h"
 #include "rocket/common/log.h"
-#include "rocket/net/string_coder.h"
+#include "rocket/net/coder/string_coder.h"
 
 namespace rocket {
 
@@ -15,7 +15,7 @@ TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, Net
     // 将对端的套接字加入fdgroup ，并为其注册读回调函数
     m_fd_event = FdEventGroup::GetFdEventGroup()->getFdevent(fd);
     m_fd_event->setNonBlock();
-    m_coder = new StringCoder();
+    m_coder = new TinyPBCoder();
 
     // 服务端需要主动监听读事件
     if (m_connection_type == TcpConnectionByServer) {
@@ -54,6 +54,7 @@ void TcpConnection::onRead() {
 
         int rt = read(m_fd, &(m_in_buffer->m_buffer[write_index]), read_count);
         if (rt > 0) {
+            DEBUGLOG("success read %d bytes from addr[%s]", rt, m_peer_addr->toString().c_str());
             m_in_buffer->moveWriteIndex(rt);
             // 读的数据全部写到buffer里面了，但是数据可能还没有读完
             if (rt == read_count) {
@@ -154,13 +155,27 @@ void TcpConnection::onWrite() {
 void TcpConnection::execute() {
     // TODO 这里为什么要分为客户端和服务端
     if (m_connection_type == TcpConnectionByServer) {
-        std::vector<char> tmp;
-        m_in_buffer->readFromBuffer(tmp, m_in_buffer->readAble());
-        std::string msg(tmp.begin(), tmp.end());
+        // std::vector<char> tmp;
+        // m_in_buffer->readFromBuffer(tmp, m_in_buffer->readAble());
+        // std::string msg(tmp.begin(), tmp.end());
+        // m_out_buffer->writeToBuffer(&tmp[0], tmp.size());
+        // 将收到的消息解码
+        std::vector<AbstractProtocol::s_ptr> receive_messages;
+        std::vector<AbstractProtocol::s_ptr> repliy_messages;
+        m_coder->decode(receive_messages, m_in_buffer);
 
-        INFOLOG("success get requst [%s] from client [%s]", msg.c_str(),m_peer_addr->toString().c_str());
+        for (auto &receive_message : receive_messages) {
+            INFOLOG("success get requst_id [%s] from client [%s]", receive_message->m_req_id.c_str(),
+            m_peer_addr->toString().c_str());
+            // 这里回复的消息先回复固定格式
+            auto message = std::make_shared<TinyPBProtocol>();
+            message->m_pb_data = "hello. this is rocket rpc test data";
+            message->m_req_id = receive_message->m_req_id;
+            repliy_messages.emplace_back(message);
+        }
 
-        m_out_buffer->writeToBuffer(&tmp[0], tmp.size());
+        // 将要发送的消息编码，并将消息发出
+        m_coder->encode(repliy_messages, m_out_buffer);
         listenWrite();
     } else {
         // 将接受的message解码
@@ -176,6 +191,7 @@ void TcpConnection::execute() {
         }
     }
 }
+
 
 void TcpConnection::setState(const TcpState state) {
     m_state = state;

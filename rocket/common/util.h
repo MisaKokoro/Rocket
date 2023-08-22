@@ -9,6 +9,8 @@ namespace rocket {
     pid_t getThreadId();    
 
     int64_t getNowMs();
+
+    uint32_t getInt32FromNetByte(const char* buf);
 } // namespace rocket
 
 #endif

@@ -8,8 +8,8 @@
 #include "rocket/net/tcp/tcp_acceptor.h"
 #include "rocket/net/io_thread.h"
 #include "rocket/net/fd_event.h"
-#include "rocket/net/abstract_protocol.h"
-#include "rocket/net/abstract_coder.h"
+#include "rocket/net/coder/tinypb_coder.h"
+#include "rocket/net/coder/tinypb_protocol.h"
 
 namespace rocket {
 enum TcpState {

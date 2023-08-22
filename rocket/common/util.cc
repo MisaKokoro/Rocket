@@ -1,5 +1,7 @@
 #include <syscall.h>
 #include <sys/time.h>
+#include <netinet/in.h>
+#include <string.h>
 #include "rocket/common/util.h"
 namespace rocket {
 
@@ -26,5 +28,13 @@ int64_t getNowMs() {
     gettimeofday(&tv, NULL);
     return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
+
+uint32_t getInt32FromNetByte(const char* buf) {
+    int32_t res = 0;
+    memcpy(&res, buf, sizeof(res));
+    res = htonl(res);
+    return res;
+}
+
 
 } // namespace rocket
