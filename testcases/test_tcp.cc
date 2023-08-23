@@ -5,6 +5,7 @@
 #include "rocket/net/tcp/tcp_server.h"
 #include "rocket/net/fd_event_group.h"
 #include "rocket/net/tcp/tcp_connection.h"
+#include "rocket/net/rpc/rpc_dispatcher.h"
 
 void test_tcp_server() {
     rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12345);

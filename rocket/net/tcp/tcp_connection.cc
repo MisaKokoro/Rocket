@@ -4,11 +4,12 @@
 #include "rocket/net/fd_event_group.h"
 #include "rocket/common/log.h"
 #include "rocket/net/coder/string_coder.h"
+#include "rocket/net/rpc/rpc_dispatcher.h"
 
 namespace rocket {
 
-TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr peer_addr, TcpConnectionType type) 
-    : m_event_loop(event_loop), m_fd(fd), m_peer_addr(peer_addr), m_state(NotConnected), m_connection_type(type) {
+TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr local_addr,NetAddr::s_ptr peer_addr, TcpConnectionType type) 
+    : m_event_loop(event_loop), m_fd(fd), m_local_addr(local_addr), m_peer_addr(peer_addr), m_state(NotConnected), m_connection_type(type) {
     m_in_buffer = std::make_shared<TcpBuffer>(buffer_size);
     m_out_buffer = std::make_shared<TcpBuffer>(buffer_size);
 
@@ -20,6 +21,7 @@ TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, Net
     // 服务端需要主动监听读事件
     if (m_connection_type == TcpConnectionByServer) {
         listenRead();
+        m_dispatcher = std::make_shared<RpcDispatcher>();
     }
 }
 
@@ -169,8 +171,11 @@ void TcpConnection::execute() {
             m_peer_addr->toString().c_str());
             // 这里回复的消息先回复固定格式
             auto message = std::make_shared<TinyPBProtocol>();
-            message->m_pb_data = "hello. this is rocket rpc test data";
-            message->m_req_id = receive_message->m_req_id;
+            // message->m_pb_data = "hello. this is rocket rpc test data";
+            // message->m_req_id = receive_message->m_req_id;
+            // repliy_messages.emplace_back(message);
+            // 执行dispatch后，message里面将有执行完rpc调用后的响应信息
+            m_dispatcher->dispatcher(receive_message, message, this);
             repliy_messages.emplace_back(message);
         }
 
@@ -251,6 +256,14 @@ void TcpConnection::pushSendMessage(AbstractProtocol::s_ptr message, std::functi
 
 void TcpConnection::pushReadMessage(const std::string &req_id, std::function<void(AbstractProtocol::s_ptr)> done) {
     m_read_dones.emplace(req_id, done);
+}
+
+NetAddr::s_ptr TcpConnection::getLocalAddr() {
+    return m_local_addr;
+}
+
+NetAddr::s_ptr TcpConnection::getPeerAddr() {
+    return m_peer_addr;
 }
 
 }

@@ -47,6 +47,8 @@ void* IOThread::Main(void *arg) {
     sem_wait(&thread->m_start_semaphore);
     DEBUGLOG("IOThread %d will start loop", thread->m_thread_id);
     thread->m_event_loop->loop();
+
+    return nullptr;
 }
 
 // 通过start函数控制IOThread的启动，可以在loop之前完成添加event的动作

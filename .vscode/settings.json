@@ -71,7 +71,8 @@
         "future": "cpp",
         "mutex": "cpp",
         "unordered_set": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "*.inc": "cpp"
     },
     "makefile.launchConfigurations": [
         {

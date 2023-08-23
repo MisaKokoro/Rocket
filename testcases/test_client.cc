@@ -11,6 +11,7 @@
 #include "rocket/net/coder/string_coder.h"
 #include "rocket/net/coder/tinypb_coder.h"
 #include "rocket/net/coder/tinypb_protocol.h"
+#include "rocket/net/rpc/rpc_dispatcher.h"
 
 void test_connect() {
   // 调用 conenct 连接 server

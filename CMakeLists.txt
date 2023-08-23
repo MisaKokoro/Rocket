@@ -11,6 +11,7 @@ set(PATH_NET ${PATH_ROCKET}/net)
 set(PATH_TESTCASES testcases)
 set(PATH_TCP ${PATH_NET}/tcp)
 set(PAHT_CODER ${PATH_NET}/coder)
+set(PATH_RPC ${PATH_NET}/rpc)
 
 # 设置输出文件的路径
 set(PATH_BIN ${CMAKE_BINARY_DIR}/bin)
@@ -31,6 +32,7 @@ include_directories(
     ${PATH_NET}
     ${PATH_TCP}
     ${PAHT_CODER}
+    ${PATH_RPC}
 )
 
 # 添加链接库搜索路径
@@ -45,6 +47,8 @@ file(GLOB TEST_LOG_SRC ${PATH_TESTCASES}/test_log.cc)
 file(GLOB TEST_EVENTLOOP_SRC ${PATH_TESTCASES}/test_eventloop.cc)
 file(GLOB TEST_TCP_SRC ${PATH_TESTCASES}/test_tcp.cc)
 file(GLOB TEST_CLIENT_SRC ${PATH_TESTCASES}/test_client.cc)
+file(GLOB RPC_SRC ${PATH_RPC}/*.cc)
+
 
 
 
@@ -65,7 +69,9 @@ target_link_libraries(test_client rocket protobuf tinyxml dl pthread)
 
 
 # 生成库文件
-add_library(rocket STATIC ${COMM_SRC} ${NET_SRC} ${TCP_SRC} ${CODER_SRC})
+add_library(rocket STATIC ${RPC_SRC} ${COMM_SRC} ${NET_SRC} ${TCP_SRC} ${CODER_SRC})
+
+# message("${PATH_RPC}")
 
 # 设置库文件的输出路径
 set_target_properties(rocket PROPERTIES

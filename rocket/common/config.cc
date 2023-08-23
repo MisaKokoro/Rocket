@@ -3,7 +3,7 @@
 #include "rocket/common/config.h"
 
 #define READ_XML_NODE(name, parent)                                             \
-TiXmlElement* name##_node = parent->FirstChildElement(#name);                   \   
+TiXmlElement* name##_node = parent->FirstChildElement(#name);                   \
 if (!name##_node) {                                                             \
     printf("Start Rocket server error, failed to read node [%s]\n", #name);     \
     exit(0);                                                                    \

@@ -10,6 +10,7 @@
 #include "rocket/net/fd_event.h"
 #include "rocket/net/coder/tinypb_coder.h"
 #include "rocket/net/coder/tinypb_protocol.h"
+#include "rocket/net/rpc/rpc_dispatcher.h"
 
 namespace rocket {
 enum TcpState {
@@ -27,7 +28,7 @@ class TcpConnection {
 public:
     using s_ptr = std::shared_ptr<TcpConnection>;
 public:
-    TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr peer_addr, TcpConnectionType type = TcpConnectionByServer);
+    TcpConnection(EventLoop* event_loop, int fd, int buffer_size, NetAddr::s_ptr local_addr ,NetAddr::s_ptr peer_addr, TcpConnectionType type = TcpConnectionByServer);
 
     ~TcpConnection();
 
@@ -55,14 +56,17 @@ public:
 
     void pushReadMessage(const std::string &req_id, std::function<void(AbstractProtocol::s_ptr)> done);
 
+    NetAddr::s_ptr getLocalAddr();
+
+    NetAddr::s_ptr getPeerAddr();
 
 private:
     EventLoop* m_event_loop {nullptr};
 
     int m_fd {-1};
-
-    NetAddr::s_ptr m_peer_addr;
+    
     NetAddr::s_ptr m_local_addr;
+    NetAddr::s_ptr m_peer_addr;
 
     TcpBuffer::s_ptr m_in_buffer; // 负责写入对端发送过来的内容
     TcpBuffer::s_ptr m_out_buffer; // 负责存将要发送给对端的内容
@@ -78,6 +82,8 @@ private:
     std::map<std::string, std::function<void(AbstractProtocol::s_ptr)>> m_read_dones;
 
     AbstractCoder* m_coder {nullptr};
+
+    std::shared_ptr<RpcDispatcher> m_dispatcher;
 
 };
 
