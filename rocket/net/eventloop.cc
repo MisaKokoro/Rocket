@@ -126,9 +126,11 @@ void EventLoop::loop() {
 void EventLoop::stop() {
     DEBUGLOG("thread_id : %d stop eventloop", m_thread_id);
     m_stop_flag = true;
+    // 可以立刻停止eventloop的循环
+    wakeup();
 }
 
-// TODO这里为什么要是否是自己进行添加？
+// TODO这里为什么要区分是否是自己进行添加？
 void EventLoop::addEpollEvent(FdEvent *event) {
     // 判断执行add操作的线程是否和eventloop的线程一致，如果一致则直接由本线程完成添加操作
     if (isInLoopThread()) {

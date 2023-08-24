@@ -11,6 +11,8 @@ namespace rocket {
 
 class TcpClient {
 public:
+    using s_ptr = std::shared_ptr<TcpClient>;
+public:
     TcpClient(NetAddr::s_ptr peer_addr);
 
     ~TcpClient();
@@ -26,6 +28,9 @@ public:
     // 异步的读取message
     // 读取=message成功则会执行回调函数
     void readMessage(const std::string&, std::function<void(AbstractProtocol::s_ptr)> done);
+
+    // 结束eventLoop的循环
+    void stop();
 
 private:
     NetAddr::s_ptr m_peer_addr;

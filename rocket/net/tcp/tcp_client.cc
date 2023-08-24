@@ -94,4 +94,12 @@ void TcpClient::readMessage(const std::string& message, std::function<void(Abstr
     m_connection->listenRead();
 }
 
+void TcpClient::stop() {
+    if (m_event_loop->isLooping()) {
+        m_event_loop->stop();
+    }
+}
+
+
+
 }
