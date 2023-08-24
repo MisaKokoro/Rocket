@@ -43,11 +43,15 @@ file(GLOB COMM_SRC ${PATH_COMM}/*.cc)
 file(GLOB NET_SRC ${PATH_NET}/*.cc)
 file(GLOB TCP_SRC ${PATH_TCP}/*.cc)
 file(GLOB CODER_SRC ${PAHT_CODER}/*.cc)
+file(GLOB RPC_SRC ${PATH_RPC}/*.cc)
+
 file(GLOB TEST_LOG_SRC ${PATH_TESTCASES}/test_log.cc)
 file(GLOB TEST_EVENTLOOP_SRC ${PATH_TESTCASES}/test_eventloop.cc)
 file(GLOB TEST_TCP_SRC ${PATH_TESTCASES}/test_tcp.cc)
 file(GLOB TEST_CLIENT_SRC ${PATH_TESTCASES}/test_client.cc)
-file(GLOB RPC_SRC ${PATH_RPC}/*.cc)
+file(GLOB TEST_RPC_SERVER_SRC ${PATH_TESTCASES}/test_rpc_server.cc ${PATH_TESTCASES}/order.pb.cc)
+file(GLOB TEST_RPC_CLIENT_SRC ${PATH_TESTCASES}/test_rpc_client.cc ${PATH_TESTCASES}/order.pb.cc)
+
 
 
 
@@ -59,6 +63,9 @@ add_executable(test_log ${TEST_LOG_SRC})
 add_executable(test_eventloop ${TEST_EVENTLOOP_SRC})
 add_executable(test_tcp ${TEST_TCP_SRC})
 add_executable(test_client ${TEST_CLIENT_SRC})
+add_executable(test_rpc_server ${TEST_RPC_SERVER_SRC})
+add_executable(test_rpc_client ${TEST_RPC_CLIENT_SRC})
+
 
 
 # 链接库文件
@@ -66,6 +73,9 @@ target_link_libraries(test_log rocket protobuf tinyxml dl pthread)
 target_link_libraries(test_eventloop rocket protobuf tinyxml dl pthread)
 target_link_libraries(test_tcp rocket protobuf tinyxml dl pthread)
 target_link_libraries(test_client rocket protobuf tinyxml dl pthread)
+target_link_libraries(test_rpc_server rocket protobuf tinyxml dl pthread)
+target_link_libraries(test_rpc_client rocket protobuf tinyxml dl pthread)
+
 
 
 # 生成库文件

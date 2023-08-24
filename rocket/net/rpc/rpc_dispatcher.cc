@@ -9,6 +9,16 @@
 
 namespace rocket {
 
+static RpcDispatcher* g_rpc_dispatcher = nullptr;
+
+RpcDispatcher* RpcDispatcher::GetRpcDispatcher() {
+    if (g_rpc_dispatcher) {
+        return g_rpc_dispatcher;
+    }
+    g_rpc_dispatcher = new RpcDispatcher();
+    return g_rpc_dispatcher;
+}
+
 void RpcDispatcher::dispatcher(AbstractProtocol::s_ptr request, AbstractProtocol::s_ptr response, TcpConnection* connection) {
     auto req_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(request);
     auto rsp_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(response);
@@ -97,6 +107,7 @@ void RpcDispatcher::dispatcher(AbstractProtocol::s_ptr request, AbstractProtocol
 // 将一个服务注册 
 void RpcDispatcher::registerService(service_s_ptr service) {
     std::string service_name = service->GetDescriptor()->full_name();
+    DEBUGLOG("service full name [%s]", service_name.c_str());
     m_service_map[service_name] = service;
 }
 
@@ -120,5 +131,7 @@ void RpcDispatcher::setTinyPBError(std::shared_ptr<TinyPBProtocol> msg, int32_t 
     msg->m_err_info = err_info;
     msg->m_err_info_len = err_info.size();
 }
+
+
 
 }

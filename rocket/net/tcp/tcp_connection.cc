@@ -21,7 +21,7 @@ TcpConnection::TcpConnection(EventLoop* event_loop, int fd, int buffer_size, Net
     // 服务端需要主动监听读事件
     if (m_connection_type == TcpConnectionByServer) {
         listenRead();
-        m_dispatcher = std::make_shared<RpcDispatcher>();
+        // m_dispatcher = std::make_shared<RpcDispatcher>();
     }
 }
 
@@ -175,7 +175,7 @@ void TcpConnection::execute() {
             // message->m_req_id = receive_message->m_req_id;
             // repliy_messages.emplace_back(message);
             // 执行dispatch后，message里面将有执行完rpc调用后的响应信息
-            m_dispatcher->dispatcher(receive_message, message, this);
+            RpcDispatcher::GetRpcDispatcher()->dispatcher(receive_message, message, this);
             repliy_messages.emplace_back(message);
         }
 

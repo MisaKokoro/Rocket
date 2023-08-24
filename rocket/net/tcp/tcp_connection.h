@@ -83,7 +83,7 @@ private:
 
     AbstractCoder* m_coder {nullptr};
 
-    std::shared_ptr<RpcDispatcher> m_dispatcher;
+    // std::shared_ptr<RpcDispatcher> m_dispatcher;
 
 };
 

@@ -13,6 +13,8 @@ namespace rocket {
 class TcpConnection; // tcp_connection.h与这个头文件相互依赖了，需要一个前置定义
 class RpcDispatcher {
 public:
+    static RpcDispatcher* GetRpcDispatcher();
+public:
     using service_s_ptr = std::shared_ptr<google::protobuf::Service>;
 
     void dispatcher(AbstractProtocol::s_ptr request, AbstractProtocol::s_ptr response, TcpConnection* connection);
