@@ -167,12 +167,12 @@ void TcpConnection::execute() {
         m_coder->decode(receive_messages, m_in_buffer);
 
         for (auto &receive_message : receive_messages) {
-            INFOLOG("success get requst_id [%s] from client [%s]", receive_message->m_req_id.c_str(),
+            INFOLOG("success get requst_id [%s] from client [%s]", receive_message->m_msg_id.c_str(),
             m_peer_addr->toString().c_str());
             // 这里回复的消息先回复固定格式
             auto message = std::make_shared<TinyPBProtocol>();
             // message->m_pb_data = "hello. this is rocket rpc test data";
-            // message->m_req_id = receive_message->m_req_id;
+            // message->m_msg_id = receive_message->m_msg_id;
             // repliy_messages.emplace_back(message);
             // 执行dispatch后，message里面将有执行完rpc调用后的响应信息
             RpcDispatcher::GetRpcDispatcher()->dispatcher(receive_message, message, this);
@@ -188,8 +188,8 @@ void TcpConnection::execute() {
         m_coder->decode(result, m_in_buffer);
 
         for (auto &message : result) {
-            std::string req_id = message->getReqId();
-            auto it = m_read_dones.find(req_id);
+            std::string msg_id = message->getReqId();
+            auto it = m_read_dones.find(msg_id);
             if (it != m_read_dones.end()) {
                 it->second(message);
             }
@@ -254,8 +254,8 @@ void TcpConnection::pushSendMessage(AbstractProtocol::s_ptr message, std::functi
     m_write_dones.emplace_back(message, done);
 }
 
-void TcpConnection::pushReadMessage(const std::string &req_id, std::function<void(AbstractProtocol::s_ptr)> done) {
-    m_read_dones.emplace(req_id, done);
+void TcpConnection::pushReadMessage(const std::string &msg_id, std::function<void(AbstractProtocol::s_ptr)> done) {
+    m_read_dones.emplace(msg_id, done);
 }
 
 NetAddr::s_ptr TcpConnection::getLocalAddr() {

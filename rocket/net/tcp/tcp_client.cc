@@ -89,7 +89,7 @@ void TcpClient::writeMessage(AbstractProtocol::s_ptr message, std::function<void
 // 读取=message成功则会执行回调函数
 void TcpClient::readMessage(const std::string& message, std::function<void(AbstractProtocol::s_ptr)> done) {
     // 监听可读事件
-    // 从buffer里decode得到的message对象， 判断是否与req_id相等，若相等执行相应的回调
+    // 从buffer里decode得到的message对象， 判断是否与msg_id相等，若相等执行相应的回调
     m_connection->pushReadMessage(message, done);
     m_connection->listenRead();
 }

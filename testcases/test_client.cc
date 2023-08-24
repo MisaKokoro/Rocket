@@ -12,6 +12,7 @@
 #include "rocket/net/coder/tinypb_coder.h"
 #include "rocket/net/coder/tinypb_protocol.h"
 #include "rocket/net/rpc/rpc_dispatcher.h"
+#include "rocket/common/msg_id_util.h"
 
 void test_connect() {
   // 调用 conenct 连接 server
@@ -55,7 +56,7 @@ void test_tcp_client() {
     DEBUGLOG("success connect [%s]", addr->toString().c_str());
     auto message = std::make_shared<rocket::TinyPBProtocol>();
     // message->info = "hello rocket";
-    message->m_req_id = "123456789";
+    message->m_msg_id = "123456789";
     message->m_pb_data = "test pb data";
     client.writeMessage(message, [](rocket::AbstractProtocol::s_ptr msg_ptr){
       DEBUGLOG("send message success");
@@ -63,7 +64,7 @@ void test_tcp_client() {
 
     client.readMessage("123456789", [](rocket::AbstractProtocol::s_ptr msg_ptr) {
       auto message = std::dynamic_pointer_cast<rocket::TinyPBProtocol>(msg_ptr);
-      DEBUGLOG("req_id[%s], get response [%s]", message->getReqId().c_str(), message->m_pb_data.c_str());
+      DEBUGLOG("msg_id[%s], get response [%s]", message->getReqId().c_str(), message->m_pb_data.c_str());
     });
   });
 }
