@@ -19,20 +19,28 @@ FdEvent::~FdEvent(){
 std::function<void()> FdEvent::handler(TriggerEvent event) {
     if (event == IN_EVENT) {
         return m_read_callback;
-    } else {
+    } else if (event == OUT_EVENT) {
         return m_write_callback;
+    } else if (event == ERROR_EVNET) {
+        return m_error_callback;
+    } else {
+        return nullptr;
     }
 }
     
 // 监听读事件或者写事件并设置相应的回调函数
-void FdEvent::listen(TriggerEvent event, std::function<void()> callback) {
+void FdEvent::listen(TriggerEvent event, std::function<void()> callback, std::function<void()> error_callback /*= nullptr*/) {
     if (event == IN_EVENT) {
         m_listen_events.events |= EPOLLIN;
         m_read_callback = callback;
-    } else {
+    } else if (event == OUT_EVENT) {
         m_listen_events.events |= EPOLLOUT;
         m_write_callback = callback;
-    }
+    } 
+
+    if (m_error_callback == nullptr) {
+        m_error_callback = error_callback;
+    } 
     // TODO 为啥这里的data可以用来存数据，它本来是干什么用的
     m_listen_events.data.ptr = this; // 将FdEvnet指针传出去
 }

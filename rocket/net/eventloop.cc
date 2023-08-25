@@ -98,7 +98,7 @@ void EventLoop::loop() {
         epoll_event result_events[g_epoll_max_events];
         // DEBUGLOG("now begin epoll wait");
         int rt = epoll_wait(m_epoll_fd, &result_events[0], g_epoll_max_events, timeout);
-        // DEBUGLOG("epoll wait end, rt = %d", rt);
+        DEBUGLOG("epoll wait end, rt = %d", rt);
         if (rt < 0) {
             ERRORLOG("epoll_wait error, errno = %d\n",errno);
         } else {
@@ -108,7 +108,9 @@ void EventLoop::loop() {
                 if (fd_event == nullptr) {
                     continue;
                 }
-                DEBUGLOG("fd_event fd = %d, events = %d", fd_event->getFd(), fd_event->getEpollEvent().events);
+                uint32_t events = trigger_event.events;
+                DEBUGLOG("fd_event events = %d, trigger events = %d", fd_event->getEpollEvent().events, events);
+                DEBUGLOG("fd_event fd = %d, events = %d", fd_event->getFd(), events);
                 if (trigger_event.events & EPOLLIN) {
                     DEBUGLOG("fd[%d] trigger EPOLLIN event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::IN_EVENT));
@@ -116,6 +118,15 @@ void EventLoop::loop() {
                 if (trigger_event.events & EPOLLOUT) {
                     DEBUGLOG("fd[%d] trigger EPOLLOUT event", fd_event->getFd());
                     addTask(fd_event->handler(FdEvent::OUT_EVENT));
+                }
+
+                if (trigger_event.events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
+                    DEBUGLOG("fd[%d] trigger EPOLLERR event, event = %d", fd_event->getFd(),static_cast<uint32_t>(trigger_event.events));
+                    deleteEpollEvent(fd_event);
+                    if (fd_event->handler(FdEvent::ERROR_EVNET) != nullptr) {
+                        DEBUGLOG("fd [%d] add error call back", fd_event->getFd());
+                        addTask(fd_event->handler(FdEvent::ERROR_EVNET));
+                    }
                 }
             }
         }

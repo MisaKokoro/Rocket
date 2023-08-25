@@ -4,6 +4,8 @@
 #include "rocket/net/tcp/tcp_client.h"
 #include "rocket/common/log.h"
 #include "rocket/net/fd_event_group.h"
+#include "rocket/common/error_code.h"
+
 namespace rocket {
 TcpClient::TcpClient(NetAddr::s_ptr peer_addr) : m_peer_addr(peer_addr) {
     m_event_loop = EventLoop::GetCurrentEventLoop();
@@ -29,41 +31,47 @@ TcpClient::~TcpClient() {
 
 //异步的进行connect
 // connect成功会执行回调函数
+// connect 完成之后才应该执行回调函数，
 void TcpClient::connect(std::function<void()> done) {
     int rt = ::connect(m_fd, m_peer_addr->getSockAddr(), m_peer_addr->getSockLen());
     if (rt == 0) {
         // 连接成功执行回调函数
+        DEBUGLOG("connect success, peer_addr[%s]", m_peer_addr->toString().c_str());
+        initLocalAddr();
+        m_connection->setState(Connected);
         if (done) {
             done();
         }
-        DEBUGLOG("connect success, peer_addr[%s]", m_peer_addr->toString().c_str());
+
     } else if (rt == -1) {
         if (errno == EINPROGRESS) {
-            // 错误码是EINPROGRESS时表示连接正在进行中，需要根据getsocket函数来判断是否连接成功
             m_fd_event->listen(FdEvent::OUT_EVENT, [this, done]() {
-                int error = 0;
-                socklen_t error_len = sizeof(error);
-                getsockopt(m_fd, SOL_SOCKET, SO_ERROR, &error, &error_len);
-
-                bool is_connect_success = false;
-                if (error == 0) {
-                    DEBUGLOG("connect success, peer_addr[%s]", m_peer_addr->toString().c_str());
-                    is_connect_success = true;
+                int rt = ::connect(m_fd, m_peer_addr->getSockAddr(), m_peer_addr->getSockLen());
+                if ((rt < 0 && errno == EISCONN) || rt == 0) {
+                    DEBUGLOG("connect [%s] success", m_peer_addr->toString().c_str());
+                    initLocalAddr();
                     m_connection->setState(Connected);
                 } else {
-                    ERRORLOG("connect error , errno = %d, error:%s", errno, strerror(errno));
+                    if (errno == ECONNREFUSED) {
+                        m_connect_errcode = ERROR_PEER_CLOSED;
+                        m_connect_error_info = "connect error, sys error =" + std::string(strerror(errno));
+                    } else {
+                        m_connect_errcode = ERROR_FAILED_CONNECT;
+                        m_connect_error_info = "connect error, sys error =" + std::string(strerror(errno));
+                    }
+                    ERRORLOG("connect error errno = %d, error:%s", errno, strerror(errno));
+                    // TODO 如果关闭套接字，再创建一个，这里的m_fd_event已经不和m_fd绑定了，应该如何处理？
+                    // close(m_fd);
+                    // m_fd = socket(m_peer_addr->getFamily(), SOCK_STREAM, 0);
                 }
 
-                // TODO 需要去掉可写事件， 不然会一直触发?
-                // 这里去掉的是连接成功后的写回调
-                m_fd_event->cancel(FdEvent::OUT_EVENT);
-                m_event_loop->addEpollEvent(m_fd_event);
+                m_event_loop->deleteEpollEvent(m_fd_event);
 
-                // 这里done调到下面来执行，不然上面的取消写回调会导致done无法把message写完后执行回调函数
-                if (is_connect_success && done) {
+                if (done) {
                     done();
                 }
-            });
+            }
+            );
             // 将事件添加，并且开启loop
             m_event_loop->addEpollEvent(m_fd_event);
             if (!m_event_loop->isLooping()) {
@@ -71,6 +79,9 @@ void TcpClient::connect(std::function<void()> done) {
             }
         } else {
             ERRORLOG("connect error , errno = %d, error:%s", errno, strerror(errno));
+            if (done) {
+                done();
+            }
         }
     }
 }
@@ -100,6 +111,31 @@ void TcpClient::stop() {
     }
 }
 
+int TcpClient::getConnectErrorCode() {
+    return m_connect_errcode;
+}
 
+std::string TcpClient::getConnectErrorInfo() {
+    return m_connect_error_info;
+}
+
+NetAddr::s_ptr TcpClient::getLocalAddr() {
+    return m_local_addr;
+}
+
+NetAddr::s_ptr TcpClient::getPeerAddr() {
+    return m_peer_addr;
+}
+// 获取连接成功后的本地地址
+void TcpClient::initLocalAddr() {
+    struct sockaddr_in localAddr;
+    socklen_t addrLen = sizeof(localAddr);
+    int ret = getsockname(m_fd, reinterpret_cast<sockaddr*>(&localAddr), &addrLen);
+    if (ret != 0) {
+        ERRORLOG("get local addr failed, errno = %d, error : %s", errno, strerror(errno));
+        return;
+    }
+    m_local_addr = std::make_shared<IPNetAddr>(localAddr);
+}
 
 }

@@ -63,19 +63,32 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     s_ptr channel = shared_from_this();
     // 创建客户端，将message发送
     // auto &client = *m_client;
-    m_client->connect([req_protocol, channel]() mutable {
+    m_client->connect([req_protocol, channel, my_controller]() mutable {
+        // auto my_controller = dynamic_cast<RpcController*>(channel->getController());
+        // 连接服务器发生了错误
+        if (channel->getTcpClient()->getConnectErrorCode() != 0) {
+            my_controller->SetError(channel->getTcpClient()->getConnectErrorCode(), channel->getTcpClient()->getConnectErrorInfo());
+            ERRORLOG("%s | connect error , error code [%d] , error info [%s], peer addr [%s]",
+                req_protocol->m_msg_id.c_str(),my_controller->GetErrorCode(), my_controller->GetErrorInfo().c_str(), 
+                channel->getTcpClient()->getPeerAddr()->toString().c_str());
+            return;
+        }
         // 发送message
-            channel->getTcpClient()->writeMessage(req_protocol, [req_protocol, channel](AbstractProtocol::s_ptr)  mutable {
-            INFOLOG("%s |, send request success: call method name [%s]", req_protocol->m_msg_id.c_str(),
-                    req_protocol->m_method_name.c_str());
+        channel->getTcpClient()->writeMessage(req_protocol, [req_protocol, channel, my_controller](AbstractProtocol::s_ptr)  mutable {
+            INFOLOG("%s |, send request success: call method name [%s], peer addr [%s], local addr[%s]", req_protocol->m_msg_id.c_str(),
+                    req_protocol->m_method_name.c_str(),
+                    channel->getTcpClient()->getPeerAddr()->toString().c_str(),
+                    channel->getTcpClient()->getLocalAddr()->toString().c_str());
             // 拿到回包后进行解析
-            channel->getTcpClient()->readMessage(req_protocol->m_msg_id, [channel](AbstractProtocol::s_ptr msg) mutable {
+            channel->getTcpClient()->readMessage(req_protocol->m_msg_id, [channel, my_controller](AbstractProtocol::s_ptr msg) mutable {
                 auto rsp_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(msg);
-                INFOLOG("%s | success get response method name [%s]", rsp_protocol->m_msg_id.c_str(), rsp_protocol->m_method_name.c_str());
+                INFOLOG("%s | success get response method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(),
+                        rsp_protocol->m_method_name.c_str(),
+                        channel->getTcpClient()->getPeerAddr()->toString().c_str(),
+                        channel->getTcpClient()->getLocalAddr()->toString().c_str());
                 // 成功收到回包，执行对应的回调函数
 
                 // 将收到的回包反序列化
-                auto my_controller = dynamic_cast<RpcController*>(channel->getController());
                 if (!channel->getResponse()->ParseFromString(rsp_protocol->m_pb_data)) {
                     ERRORLOG("deserialize failed");
                     my_controller->SetError(ERROR_FAILED_DESERIALIZE, "deserialize error");
@@ -89,17 +102,19 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
                     return;
                 }
 
+                INFOLOG("%s | call rpc succsee method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(),
+                        rsp_protocol->m_method_name.c_str(),
+                        channel->getTcpClient()->getPeerAddr()->toString().c_str(),
+                        channel->getTcpClient()->getLocalAddr()->toString().c_str());
+
                 if (channel->getClosure()) {
                     channel->getClosure()->Run();
                 }
-
                 // 执行完毕，可以析构了
                 channel.reset();
             });
         });
     });
-    
-
 }
 
 // 将用到的指针通过智能指针的方式存下来，防止在使用过程中析构
