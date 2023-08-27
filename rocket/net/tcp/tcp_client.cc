@@ -24,6 +24,7 @@ TcpClient::TcpClient(NetAddr::s_ptr peer_addr) : m_peer_addr(peer_addr) {
 }
 
 TcpClient::~TcpClient() {
+    INFOLOG("~TcpClient");
     if (m_fd > 0) {
         close(m_fd);
     }
@@ -39,16 +40,20 @@ void TcpClient::connect(std::function<void()> done) {
         DEBUGLOG("connect success, peer_addr[%s]", m_peer_addr->toString().c_str());
         initLocalAddr();
         m_connection->setState(Connected);
+        // if (!m_event_loop->isLooping()) {
+        //     m_event_loop->loop();
+        // }
         if (done) {
             done();
         }
+
 
     } else if (rt == -1) {
         if (errno == EINPROGRESS) {
             m_fd_event->listen(FdEvent::OUT_EVENT, [this, done]() {
                 int rt = ::connect(m_fd, m_peer_addr->getSockAddr(), m_peer_addr->getSockLen());
                 if ((rt < 0 && errno == EISCONN) || rt == 0) {
-                    DEBUGLOG("connect [%s] success", m_peer_addr->toString().c_str());
+                    DEBUGLOG("rt != 0 connect [%s] success", m_peer_addr->toString().c_str());
                     initLocalAddr();
                     m_connection->setState(Connected);
                 } else {
@@ -136,6 +141,10 @@ void TcpClient::initLocalAddr() {
         return;
     }
     m_local_addr = std::make_shared<IPNetAddr>(localAddr);
+}
+
+void TcpClient::addTimerEvent(TimerEvent::s_ptr timer_event) {
+    m_event_loop->addTimerEvent(timer_event);
 }
 
 }

@@ -21,6 +21,8 @@ class OrderImpl : public Order {
                        const ::makeOrderRequest* request,
                        ::makeOrderResponse* response,
                        ::google::protobuf::Closure* done) {
+        DEBUGLOG("sleep 5s for rpc timeout test");
+        sleep(3);
         if (request->price() < 10) {
             response->set_ret_code(-1);
             response->set_res_info("short balance");

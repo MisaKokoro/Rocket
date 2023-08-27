@@ -42,6 +42,8 @@ public:
 
     void initLocalAddr();
 
+    void addTimerEvent(TimerEvent::s_ptr timer_event);
+
 private:
     NetAddr::s_ptr m_peer_addr;
     NetAddr::s_ptr m_local_addr;
