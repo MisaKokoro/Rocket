@@ -11,6 +11,8 @@ namespace rocket {
     int64_t getNowMs();
 
     uint32_t getInt32FromNetByte(const char* buf);
+
+    std::string getNowDate();
 } // namespace rocket
 
 #endif

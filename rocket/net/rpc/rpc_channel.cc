@@ -61,7 +61,7 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     }
     // 使用智能指针持久化 channel对象，防止其析构
     s_ptr channel = shared_from_this();
-    INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
 
     // 设置一个定时事件，当rpc一直没有调用成功时执行
     m_timer_event = std::make_shared<TimerEvent>(my_controller->GetTimeout(), false,
@@ -74,41 +74,43 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
         if (channel->getClosure()) {
             channel->getClosure()->Run();
         }
-        channel.reset();
+        channel.reset(); // 必须手动reset， timerEvent会存储一个callback会把这个指针指针存下来，这里手动让智能指针计数减1
     }
     );
-    INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
     m_client->addTimerEvent(m_timer_event);
 
-    m_client->connect([req_protocol, channel, my_controller]() mutable {
+    // 为了防止出现内存泄露问题，lambda函数不传递channel的智能指针了
+    m_client->connect([req_protocol, this, my_controller]() mutable {
         // auto my_controller = dynamic_cast<RpcController*>(channel->getController());
         // 连接服务器发生了错误
-        INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
-        if (channel->getTcpClient()->getConnectErrorCode() != 0) {
-            my_controller->SetError(channel->getTcpClient()->getConnectErrorCode(), channel->getTcpClient()->getConnectErrorInfo());
+        // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+        if (getTcpClient()->getConnectErrorCode() != 0) {
+            my_controller->SetError(getTcpClient()->getConnectErrorCode(), getTcpClient()->getConnectErrorInfo());
             ERRORLOG("%s | connect error , error code [%d] , error info [%s], peer addr [%s]",
                 req_protocol->m_msg_id.c_str(),my_controller->GetErrorCode(), my_controller->GetErrorInfo().c_str(), 
-                channel->getTcpClient()->getPeerAddr()->toString().c_str());
+                getTcpClient()->getPeerAddr()->toString().c_str());
             return;
         }
         // 发送message
-        channel->getTcpClient()->writeMessage(req_protocol, [req_protocol, channel, my_controller](AbstractProtocol::s_ptr)  mutable {
+            getTcpClient()->writeMessage(req_protocol, [req_protocol, this, my_controller](AbstractProtocol::s_ptr)  mutable {
             INFOLOG("%s |, send request success: call method name [%s], peer addr [%s], local addr[%s]", req_protocol->m_msg_id.c_str(),
                     req_protocol->m_method_name.c_str(),
-                    channel->getTcpClient()->getPeerAddr()->toString().c_str(),
-                    channel->getTcpClient()->getLocalAddr()->toString().c_str());
+                    getTcpClient()->getPeerAddr()->toString().c_str(),
+                    getTcpClient()->getLocalAddr()->toString().c_str());
             // 拿到回包后进行解析
-            channel->getTcpClient()->readMessage(req_protocol->m_msg_id, [channel, my_controller](AbstractProtocol::s_ptr msg) mutable {
+                getTcpClient()->readMessage(req_protocol->m_msg_id, [this, my_controller](AbstractProtocol::s_ptr msg) mutable {
                 auto rsp_protocol = std::dynamic_pointer_cast<TinyPBProtocol>(msg);
                 INFOLOG("%s | success get response method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(),
                         rsp_protocol->m_method_name.c_str(),
-                        channel->getTcpClient()->getPeerAddr()->toString().c_str(),
-                        channel->getTcpClient()->getLocalAddr()->toString().c_str());
+                        getTcpClient()->getPeerAddr()->toString().c_str(),
+                        getTcpClient()->getLocalAddr()->toString().c_str());
                 // 成功收到回包，执行对应的回调函数
                 // 拿到回包了，定时任务可以取消了
-                 channel->getTimerEvent()->setCanceled(true);
+                 getTimerEvent()->setCanceled(true);
                 // 将收到的回包反序列化
-                if (!channel->getResponse()->ParseFromString(rsp_protocol->m_pb_data)) {
+                // printf("???????????????\n");
+                if (!getResponse()->ParseFromString(rsp_protocol->m_pb_data)) {
                     ERRORLOG("deserialize failed");
                     my_controller->SetError(ERROR_FAILED_DESERIALIZE, "deserialize error");
                     return;
@@ -123,18 +125,18 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
 
                 INFOLOG("%s | call rpc succsee method name [%s], peer addr [%s], local addr [%s]", rsp_protocol->m_msg_id.c_str(),
                         rsp_protocol->m_method_name.c_str(),
-                        channel->getTcpClient()->getPeerAddr()->toString().c_str(),
-                        channel->getTcpClient()->getLocalAddr()->toString().c_str());
+                        getTcpClient()->getPeerAddr()->toString().c_str(),
+                        getTcpClient()->getLocalAddr()->toString().c_str());
 
                 // rpc调用没有被取消的情况下执行回调函数
-                if (!my_controller->IsCanceled() && channel->getClosure()) {
-                    channel->getClosure()->Run();
+                if (!my_controller->IsCanceled() && getClosure()) {
+                    getClosure()->Run();
                 }
-                // 执行完毕，可以析构了
-                channel.reset();
-                INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+                // // 执行完毕，可以析构了
+                // channel.reset();
+                // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
             });
-            channel.reset();
+            // channel.reset();
         });
     });
     INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());

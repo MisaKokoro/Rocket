@@ -6,6 +6,7 @@
 #include "rocket/common/error_code.h"
 #include "rocket/net/rpc/rpc_controller.h"
 #include "rocket/net/tcp/tcp_connection.h"
+#include "rocket/common/run_time.h"
 
 namespace rocket {
 
@@ -73,6 +74,10 @@ void RpcDispatcher::dispatcher(AbstractProtocol::s_ptr request, AbstractProtocol
     rpcController.SetLocalAddr(connection->getLocalAddr());
     rpcController.SetPeerAddr(connection->getPeerAddr());
     rpcController.SetMsgId(req_protocol->m_msg_id);
+
+    // Runtime获取相关运行时信息
+    RunTime::GetRunTime()->m_method_name = method_full_name;
+    RunTime::GetRunTime()->m_msg_id = req_protocol->m_msg_id;
 
     service->CallMethod(method, &rpcController, req_msg, rsp_msg, nullptr);
 

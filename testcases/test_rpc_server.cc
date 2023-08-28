@@ -21,39 +21,42 @@ class OrderImpl : public Order {
                        const ::makeOrderRequest* request,
                        ::makeOrderResponse* response,
                        ::google::protobuf::Closure* done) {
-        DEBUGLOG("sleep 5s for rpc timeout test");
-        sleep(3);
+        APPDEBUGLOG("sleep 5s for rpc timeout test");
+        // sleep(5);
+        APPDEBUGLOG("sleep end");
         if (request->price() < 10) {
             response->set_ret_code(-1);
             response->set_res_info("short balance");
         }
         response->set_order_id("20230514");
+        APPDEBUGLOG("call makeOrder success");
 
     }
 };
 
 
-void test_tcp_server() {
-    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12345);
-    rocket::TcpServer tcp_server(addr);
+int main(int argc, char* argv[]) {
 
-    auto service = std::make_shared<OrderImpl>();
-    rocket::RpcDispatcher::GetRpcDispatcher()->registerService(service);
-
-    tcp_server.start();
-}
-
-int main() {
-    rocket::Config::InitGlobalConfig("/home/yanxiang/Desktop/MyProject/rocket/conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger();
-
-    rocket::IPNetAddr addr("127.0.0.1:12345");
-    DEBUGLOG("create addr %s", addr.toString().c_str());
-
-
-    test_tcp_server();
-
-
+  if (argc != 2) {
+    printf("Start test_rpc_server error, argc not 2 \n");
+    printf("Start like this: \n");
+    printf("./test_rpc_server ../conf/rocket.xml \n");
     return 0;
+  }
+
+  rocket::Config::InitGlobalConfig(argv[1]);
+
+  rocket::Logger::InitGlobalLogger();
+
+  std::shared_ptr<OrderImpl> service = std::make_shared<OrderImpl>();
+  rocket::RpcDispatcher::GetRpcDispatcher()->registerService(service);
+
+  rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", rocket::Config::GetGlobalConfig()->m_port);
+
+  rocket::TcpServer tcp_server(addr);
+
+  tcp_server.start();
+
+  return 0;
 }
 

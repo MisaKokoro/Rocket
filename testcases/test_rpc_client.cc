@@ -80,10 +80,10 @@ void test_rpc_channel() {
     auto controller = std::make_shared<rocket::RpcController>();
     controller->SetMsgId(rocket::MsgIDUtil::GenMsgID());
 
-    INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
 
     auto closure = std::make_shared<rocket::RpcClosure>([channel, request, response, controller]() mutable {
-      INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+      // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
       if (controller->GetErrorCode() == 0) {
       INFOLOG("call rpc success, request [%s], response [%s]", 
             request->ShortDebugString().c_str(), response->ShortDebugString().c_str());
@@ -94,28 +94,28 @@ void test_rpc_channel() {
       INFOLOG("Now exit eventLoop");
       channel->getTcpClient()->stop();
       channel.reset();
-      INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+      // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
     });
-    INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
 
     channel->Init(controller, request, response, closure);
-    INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
     
     Order_Stub stub(channel.get());
 
-    controller->SetTimeout(5000);
+    controller->SetTimeout(1000);
     
     stub.makeOrder(controller.get(), request.get(), response.get(), closure.get());
 
     // CALLRPC("127.0.0.1:12345", Order_Stub, makeOrder, controller, request, response, closure);
     
-    DEBUGLOG("test_rpc_channel finished");
+    INFOLOG("test_rpc_channel finished");
     INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
 }
 
 int main() {
-    rocket::Config::InitGlobalConfig("/home/yanxiang/Desktop/MyProject/rocket/conf/rocket.xml");
-    rocket::Logger::InitGlobalLogger();
+    rocket::Config::InitGlobalConfig(nullptr);
+    rocket::Logger::InitGlobalLogger(rocket::Logger::SYNC);
 
 
     // test_connect();

@@ -2,6 +2,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <string>
 #include "rocket/common/util.h"
 namespace rocket {
 
@@ -34,6 +35,17 @@ uint32_t getInt32FromNetByte(const char* buf) {
     memcpy(&res, buf, sizeof(res));
     res = htonl(res);
     return res;
+}
+
+std::string getNowDate() {
+    time_t current_time;
+    struct tm result;
+    char buf[30] = {0};
+
+    current_time = time(nullptr);
+    localtime_r(&current_time, &result);
+    strftime(buf, sizeof(buf), "%Y-%m-%d", &result);
+    return std::string(buf);
 }
 
 
