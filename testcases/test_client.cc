@@ -70,7 +70,7 @@ void test_tcp_client() {
 }
 
 int main() {
-    rocket::Config::InitGlobalConfig("/home/yanxiang/Desktop/MyProject/rocket/conf/rocket.xml");
+    rocket::Config::SetGlobalConfig("/home/yanxiang/Desktop/MyProject/rocket/conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
 
 

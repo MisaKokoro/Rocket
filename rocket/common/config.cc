@@ -32,7 +32,7 @@ Config* Config::GetGlobalConfig() {
   return g_config;
 }
 
-void Config::InitGlobalConfig(const char* xmlfile) {
+void Config::SetGlobalConfig(const char* xmlfile) {
   if (g_config == NULL) {
     if (xmlfile != NULL) {
       g_config = new Config(xmlfile);

@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  rocket::Config::InitGlobalConfig(argv[1]);
+  rocket::Config::SetGlobalConfig(argv[1]);
 
   rocket::Logger::InitGlobalLogger();
 

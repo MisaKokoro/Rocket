@@ -10,7 +10,7 @@ void func() {
 }
 int main() {
     
-    rocket::Config::InitGlobalConfig("../conf/rocket.xml");
+    rocket::Config::SetGlobalConfig("../conf/rocket.xml");
     rocket::Logger::InitGlobalLogger();
 
     vector<thread> th;

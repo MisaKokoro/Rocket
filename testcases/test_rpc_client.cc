@@ -114,7 +114,7 @@ void test_rpc_channel() {
 }
 
 int main() {
-    rocket::Config::InitGlobalConfig(nullptr);
+    rocket::Config::SetGlobalConfig(nullptr);
     rocket::Logger::InitGlobalLogger(rocket::Logger::SYNC);
 
 

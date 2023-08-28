@@ -25,7 +25,7 @@ class Config {
 
  public:
   static Config* GetGlobalConfig();
-  static void InitGlobalConfig(const char* xmlfile);
+  static void SetGlobalConfig(const char* xmlfile);
 
  public:
   std::string m_log_level;
