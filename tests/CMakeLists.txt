@@ -1,0 +1,2 @@
+add_subdirectory(test_rpc)
+add_subdirectory(test_log)

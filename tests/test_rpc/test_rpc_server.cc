@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
   rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", rocket::Config::GetGlobalConfig()->m_port);
 
-  rocket::TcpServer tcp_server(addr);
+  rocket::TcpServer tcp_server(addr, rocket::Config::GetGlobalConfig()->m_io_threads);
 
   tcp_server.start();
 

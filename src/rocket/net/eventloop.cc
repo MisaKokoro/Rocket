@@ -98,7 +98,7 @@ void EventLoop::loop() {
         epoll_event result_events[g_epoll_max_events];
         // DEBUGLOG("now begin epoll wait");
         int rt = epoll_wait(m_epoll_fd, &result_events[0], g_epoll_max_events, timeout);
-        // DEBUGLOG("epoll wait end, rt = %d", rt);
+        DEBUGLOG("epoll wait end, rt = %d", rt);
         if (rt < 0) {
             ERRORLOG("epoll_wait error, errno = %d\n",errno);
         } else {

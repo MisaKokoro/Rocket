@@ -26,6 +26,8 @@ public:
 
     void moveReadIndex(int size);
     void moveWriteIndex(int size);
+
+    std::string getBufferString();
 private:
     int m_size {0};
     int m_read_index {0};

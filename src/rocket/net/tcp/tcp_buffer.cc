@@ -93,4 +93,11 @@ void TcpBuffer::moveWriteIndex(int size) {
     m_write_index = end;
 }
 
+std::string TcpBuffer::getBufferString() {
+  std::string re(readAble(), '0');
+  memcpy(&re[0],  &m_buffer[m_read_index], readAble());
+  return re;
+}
+
+
 }

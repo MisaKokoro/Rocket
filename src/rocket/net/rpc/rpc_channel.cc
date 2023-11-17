@@ -65,19 +65,20 @@ void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
 
     // 设置一个定时事件，当rpc一直没有调用成功时执行
     m_timer_event = std::make_shared<TimerEvent>(my_controller->GetTimeout(), false,
-    [my_controller, channel]() mutable {
-        INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    [my_controller, this]() mutable {
+        // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
         DEBUGLOG("rpc call timeout QAQ");
         my_controller->StartCancel();
         my_controller->SetError(ERROR_RPC_CALL_TIMEOUT, "rpc call timeout " + std::to_string(my_controller->GetTimeout()) + "ms");
         
-        if (channel->getClosure()) {
-            channel->getClosure()->Run();
+        if (getClosure()) {
+            getClosure()->Run();
         }
-        channel.reset(); // 必须手动reset， timerEvent会存储一个callback会把这个指针指针存下来，这里手动让智能指针计数减1
+        // channel.reset(); // 必须手动reset， timerEvent会存储一个callback会把这个指针指针存下来，这里手动让智能指针计数减1
+        // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
     }
     );
-    // INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
+    INFOLOG("channel use count %d, ptr %p", channel.use_count(), channel.get());
     m_client->addTimerEvent(m_timer_event);
 
     // 为了防止出现内存泄露问题，lambda函数不传递channel的智能指针了

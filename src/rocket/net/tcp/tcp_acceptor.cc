@@ -51,6 +51,7 @@ std::pair<int, NetAddr::s_ptr> TcpAcceptor::accept() {
         int client_fd = ::accept(m_listenfd, reinterpret_cast<sockaddr*>(&client_addr), &len);
         if (client_fd < 0) {
             ERRORLOG("accept client failed , errno is %d, error:%s", errno, strerror(errno));
+            return {-1, nullptr};
         }
 
         auto peer_addr = std::make_shared<IPNetAddr>(client_addr);

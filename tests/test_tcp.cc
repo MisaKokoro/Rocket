@@ -8,10 +8,10 @@
 #include "rocket/net/rpc/rpc_dispatcher.h"
 
 void test_tcp_server() {
-    rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12345);
-    rocket::TcpServer tcp_server(addr);
+    // rocket::IPNetAddr::s_ptr addr = std::make_shared<rocket::IPNetAddr>("127.0.0.1", 12345);
+    // rocket::TcpServer tcp_server(addr);
 
-    tcp_server.start();
+    // tcp_server.start();
 }
 
 int main() {

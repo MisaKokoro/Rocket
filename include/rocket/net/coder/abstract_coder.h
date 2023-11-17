@@ -7,6 +7,11 @@
 #include "rocket/net/coder/abstract_protocol.h"
 
 namespace rocket {
+    
+enum ProtocalType {
+  TinyPb_Protocal = 1,
+  Http_Protocal = 2
+};
 
 class AbstractCoder {
 public:
